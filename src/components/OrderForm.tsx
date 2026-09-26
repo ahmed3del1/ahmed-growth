@@ -3,11 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { placeOrder } from "@/app/actions";
+import { trackPixel } from "@/lib/pixel";
 import { paymentMethods } from "@/lib/form-options";
 
 type Lang = "ar" | "en";
 
-export function OrderForm({ productId, lang }: { productId: string; lang: Lang }) {
+export function OrderForm({ productId, price, lang }: { productId: string; price: number; lang: Lang }) {
   const L = (ar: string, en: string) => (lang === "ar" ? ar : en);
   const router = useRouter();
   const [f, setF] = useState({ hp: "", name: "", phone: "", email: "", method: "instapay", note: "" });
@@ -20,7 +21,10 @@ export function OrderForm({ productId, lang }: { productId: string; lang: Lang }
     setError("");
     start(async () => {
       const res = await placeOrder({ ...f, productId });
-      if (res.ok) router.push(`/order/${res.code}`);
+      if (res.ok) {
+        trackPixel("InitiateCheckout", { value: price, currency: "EGP", content_ids: [productId] });
+        router.push(`/order/${res.code}`);
+      }
       else
         setError(
           res.error === "unavailable"

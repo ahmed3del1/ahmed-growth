@@ -71,7 +71,7 @@ export const neededServices: Option[] = [
 export const paymentMethods: Option[] = [
   { value: "instapay", label: { ar: "InstaPay", en: "InstaPay" } },
   { value: "vodafone", label: { ar: "Vodafone Cash", en: "Vodafone Cash" } },
-  { value: "other", label: { ar: "تنسيق على واتساب", en: "Arrange on WhatsApp" } },
+  { value: "other", label: { ar: "تحويل دولي (واتساب)", en: "International transfer (WhatsApp)" } },
 ];
 
 export const values = (opts: Option[]) => opts.map((o) => o.value);

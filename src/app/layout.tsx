@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Cairo, Cormorant_Garamond, DM_Mono, Noto_Sans } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
+import { MetaPixel } from "@/components/MetaPixel";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { getLang } from "@/lib/lang";
@@ -36,6 +38,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Header lang={lang} />
         <main className="flex-1">{children}</main>
         <Footer lang={lang} />
+        <MetaPixel />
+        <Analytics />
       </body>
     </html>
   );

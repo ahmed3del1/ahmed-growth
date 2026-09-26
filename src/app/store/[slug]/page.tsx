@@ -30,7 +30,7 @@ export default async function ProductPage({ params }: Props) {
           <p className="mt-6 whitespace-pre-line text-lg leading-relaxed text-silver">{lang === "ar" ? p.desc_ar : p.desc_en}</p>
           <p className="mt-10 font-mono text-3xl">{money(p.price, lang)}</p>
         </div>
-        <OrderForm productId={p.id} lang={lang} />
+        <OrderForm productId={p.id} price={p.price} lang={lang} />
       </div>
     </div>
   );

@@ -47,15 +47,19 @@ export default async function OrderPage({ params }: Props) {
             {order.method === "instapay" && instapay && <li><span className="label me-3">InstaPay</span><span dir="ltr" className="font-mono">{instapay}</span></li>}
             {order.method === "vodafone" && vodafone && <li><span className="label me-3">Vodafone Cash</span><span dir="ltr" className="font-mono">{vodafone}</span></li>}
             <li className="leading-relaxed text-silver">
-              {lang === "ar"
-                ? `حوّل ${money(order.price, lang)} وابعتلي صورة التحويل على واتساب مع كود الطلب.`
-                : `Transfer ${money(order.price, lang)} and send me the receipt on WhatsApp with your order code.`}
+              {order.method === "other"
+                ? lang === "ar"
+                  ? "للتحويل الدولي، كلّمني على واتساب ونتفق على طريقة الدفع الأنسب. ابعتلي كود الطلب."
+                  : "For international transfers, message me on WhatsApp and we'll agree on the best payment method. Send me your order code."
+                : lang === "ar"
+                  ? `حوّل ${money(order.price, lang)} وابعتلي صورة التحويل على واتساب مع كود الطلب.`
+                  : `Transfer ${money(order.price, lang)} and send me the receipt on WhatsApp with your order code.`}
             </li>
           </ul>
           {wa && (
             <a className="btn btn-primary mt-6" target="_blank" rel="noopener noreferrer"
               href={`https://wa.me/${wa}?text=${encodeURIComponent(`${order.code} — ${order.name}`)}`}>
-              {lang === "ar" ? "ابعت إيصال الدفع" : "Send payment receipt"}
+              {order.method === "other" ? (lang === "ar" ? "كلّمني على واتساب" : "Message me on WhatsApp") : lang === "ar" ? "ابعت إيصال الدفع" : "Send payment receipt"}
             </a>
           )}
         </section>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { submitLead } from "@/app/actions";
+import { trackPixel } from "@/lib/pixel";
 import {
   adStatus,
   budgets,
@@ -109,7 +110,10 @@ export function LeadForm({ lang }: { lang: Lang }) {
     setError("");
     start(async () => {
       const res = await submitLead(f);
-      if (res.ok) setCode(res.code);
+      if (res.ok) {
+        trackPixel("Lead", { content_name: "brief" });
+        setCode(res.code);
+      }
       else setError(res.error === "invalid" ? L("راجع البيانات وحاول تاني.", "Please check your details and try again.") : L("حصلت مشكلة. حاول تاني بعد شوية.", "Something went wrong. Please try again shortly."));
     });
   };

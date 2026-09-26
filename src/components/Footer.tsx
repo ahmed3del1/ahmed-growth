@@ -36,9 +36,13 @@ export function Footer({ lang }: { lang: Lang }) {
         </nav>
       </div>
       <div className="border-t border-smoke">
-        <p className="label mx-auto max-w-6xl px-5 py-5">
-          © {new Date().getFullYear()} {site.name.en}
-        </p>
+        <div className="label mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-5 py-5">
+          <p>© {new Date().getFullYear()} {site.name.en}</p>
+          <p className="normal-case tracking-normal">
+            {lang === "ar" ? "تم تنفيذ الموقع بواسطة " : "Website built by "}
+            <span className="text-snow">Buildora Agency</span>
+          </p>
+        </div>
       </div>
     </footer>
   );
