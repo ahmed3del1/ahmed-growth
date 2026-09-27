@@ -36,26 +36,39 @@ function getTransport() {
   return transport;
 }
 
+export type EmailResult = { ok: true } | { ok: false; error: string };
+
 /**
  * Send an email to any address — no domain needed. Sends through your own inbox
  * (EMAIL_USER + EMAIL_APP_PASSWORD, Gmail or Outlook/Hotmail — auto-detected) if
  * configured, else via Resend (RESEND_API_KEY), which only reaches the Resend
- * account's own email unless a domain is verified. Silent no-op if neither is set.
+ * account's own email unless a domain is verified. Returns the real error instead
+ * of throwing, so callers (like the admin's "test email" button) can show it.
  */
-export async function sendEmail(to: string, subject: string, text: string) {
+export async function sendEmail(to: string, subject: string, text: string): Promise<EmailResult> {
   const smtp = getTransport();
   if (smtp) {
-    await smtp.sendMail({ from: process.env.EMAIL_USER, to, subject, text });
-    return;
+    try {
+      await smtp.sendMail({ from: process.env.EMAIL_USER, to, subject, text });
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : String(e) };
+    }
   }
   const key = process.env.RESEND_API_KEY;
-  if (!key) return;
-  const from = process.env.RESEND_FROM_EMAIL || "Ahmed Adel <onboarding@resend.dev>";
-  await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
-    body: JSON.stringify({ from, to: [to], subject, text }),
-  });
+  if (!key) return { ok: false, error: "No email provider configured: set EMAIL_USER + EMAIL_APP_PASSWORD (or RESEND_API_KEY) in Vercel." };
+  try {
+    const from = process.env.RESEND_FROM_EMAIL || "Ahmed Adel <onboarding@resend.dev>";
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
+      body: JSON.stringify({ from, to: [to], subject, text }),
+    });
+    if (!res.ok) return { ok: false, error: `Resend ${res.status}: ${await res.text()}` };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
 }
 
 /**

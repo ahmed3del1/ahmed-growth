@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { logoutAction } from "../actions";
+import { TestEmailButton } from "@/components/admin/TestEmailButton";
 
 export const metadata: Metadata = { title: "Admin", robots: { index: false, follow: false } };
 
@@ -25,6 +26,9 @@ export default async function PanelLayout({ children }: { children: React.ReactN
         <form action={logoutAction}>
           <button className="label transition-colors hover:text-snow" type="submit">Sign out</button>
         </form>
+      </div>
+      <div className="pt-6">
+        <TestEmailButton />
       </div>
       <div className="pt-8">{children}</div>
     </div>

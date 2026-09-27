@@ -33,6 +33,14 @@ export async function logoutAction() {
   redirect("/admin/login");
 }
 
+/** Diagnostic for the admin panel's "Test email" button — shows the real error on screen. */
+export async function testEmail() {
+  await requireAdmin();
+  const to = process.env.NOTIFY_EMAIL_TO || process.env.EMAIL_USER;
+  if (!to) return { ok: false as const, error: "NOTIFY_EMAIL_TO (or EMAIL_USER) isn't set in Vercel." };
+  return sendEmail(to, "✅ Test email from your site", `If you're reading this, email sending works. Sent to ${to}.`);
+}
+
 export async function setLeadStatus(id: string, formData: FormData) {
   await requireAdmin();
   const status = String(formData.get("status")) as LeadStatus;
