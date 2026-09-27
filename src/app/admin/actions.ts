@@ -8,12 +8,15 @@ import {
   LEAD_STATUSES,
   ORDER_STATUSES,
   deleteProduct,
+  getOrder,
+  getProduct,
   saveProduct,
   updateLead,
   updateOrder,
   type LeadStatus,
   type OrderStatus,
 } from "@/lib/db";
+import { sendEmail } from "@/lib/notify";
 
 export async function loginAction(formData: FormData) {
   const password = String(formData.get("password") ?? "");
@@ -48,8 +51,64 @@ export async function setOrderStatus(id: string, formData: FormData) {
   await requireAdmin();
   const status = String(formData.get("status")) as OrderStatus;
   if (!ORDER_STATUSES.includes(status)) return;
+
+  const before = await getOrder(id);
   await updateOrder(id, { status });
+
+  // Just turned "paid" for the first time: email the product to the customer automatically.
+  if (before && before.status !== "paid" && before.status !== "delivered" && status === "paid") {
+    try {
+      await sendDeliveryEmail(before, before.product_id);
+    } catch (e) {
+      console.error("delivery email failed", e); // never block the status update on this
+    }
+  }
+
   revalidatePath("/admin", "layout");
+}
+
+async function sendDeliveryEmail(order: { code: string; email: string; name: string; product_title: string }, productId: string) {
+  const product = await getProduct(productId);
+  const link = product?.delivery_url;
+
+  const subject = `منتجك جاهز — ${order.code} / Your product is ready`;
+  const text = link
+    ? [
+        `أهلًا ${order.name}،`,
+        ``,
+        `تم تأكيد الدفع لطلبك ${order.code} — ${order.product_title}.`,
+        `افتح المنتج من هنا: ${link}`,
+        ``,
+        `لو محتاج أي حاجة، رد على الإيميل ده أو كلمني على واتساب.`,
+        `— أحمد عادل`,
+        ``,
+        `----`,
+        ``,
+        `Hi ${order.name},`,
+        ``,
+        `Payment confirmed for your order ${order.code} — ${order.product_title}.`,
+        `Open your product here: ${link}`,
+        ``,
+        `Need anything? Reply to this email or message me on WhatsApp.`,
+        `— Ahmed Adel`,
+      ].join("\n")
+    : [
+        `أهلًا ${order.name}،`,
+        ``,
+        `تم تأكيد الدفع لطلبك ${order.code} — ${order.product_title}.`,
+        `هتواصل معاك على واتساب لتنسيق التسليم.`,
+        `— أحمد عادل`,
+        ``,
+        `----`,
+        ``,
+        `Hi ${order.name},`,
+        ``,
+        `Payment confirmed for your order ${order.code} — ${order.product_title}.`,
+        `I'll reach out on WhatsApp to arrange delivery.`,
+        `— Ahmed Adel`,
+      ].join("\n");
+
+  await sendEmail(order.email, subject, text);
 }
 
 export async function saveOrderNote(id: string, formData: FormData) {

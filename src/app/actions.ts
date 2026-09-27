@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { z } from "zod";
-import { createLead, createOrder, getProduct } from "@/lib/db";
+import { createLead, createOrder, getOrderByCode, getProduct } from "@/lib/db";
 import { notify } from "@/lib/notify";
 import {
   adStatus,
@@ -60,7 +60,10 @@ export async function submitLead(input: unknown): Promise<Result> {
 
   try {
     const lead = await createLead({ name, whatsapp, email, business, answers });
-    await notify(`New lead ${lead.code}\n${name} — ${business}\nWhatsApp: ${whatsapp}\nBudget: ${answers.budget}`);
+    await notify(
+      `📩 New brief ${lead.code} — ${business}`,
+      `New brief ${lead.code}\n${name} — ${business}\nWhatsApp: ${whatsapp}\nBudget: ${answers.budget}`,
+    );
     return { ok: true, code: lead.code };
   } catch (e) {
     console.error(e);
@@ -97,10 +100,23 @@ export async function placeOrder(input: unknown): Promise<Result> {
       method,
       note,
     });
-    await notify(`New order ${order.code}\n${product.title_en} — EGP ${product.price}\n${name} — ${phone}`);
+    await notify(
+      `🛒 New order ${order.code} — EGP ${product.price}`,
+      `New order ${order.code}\n${product.title_en} — EGP ${product.price}\n${name} — ${phone}`,
+    );
     return { ok: true, code: order.code };
   } catch (e) {
     console.error(e);
     return { ok: false, error: "server" };
   }
+}
+
+/** Customer clicked "I've transferred" — ping every configured channel instantly. */
+export async function claimPayment(code: string) {
+  const order = await getOrderByCode(code);
+  if (!order || order.status !== "pending") return;
+  await notify(
+    `💰 Payment claimed — ${order.code}`,
+    `العميل بيقول إنه حوّل لطلب ${order.code}\n${order.product_title} — EGP ${order.price}\n${order.name} — ${order.phone}\nطريقة الدفع: ${order.method}`,
+  );
 }

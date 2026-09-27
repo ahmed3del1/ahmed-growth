@@ -289,6 +289,10 @@ export async function getOrderByCode(code: string) {
   return (await listOrders()).find((o) => o.code === code.trim().toUpperCase()) ?? null;
 }
 
+export async function getOrder(id: string) {
+  return (await listOrders()).find((o) => o.id === id) ?? null;
+}
+
 export async function updateOrder(id: string, patch: Partial<Pick<Order, "status" | "admin_note">>) {
   await getStore().update("orders", id, patch);
 }

@@ -4,6 +4,7 @@ import { getLang } from "@/lib/lang";
 import { getOrderByCode, getProduct } from "@/lib/db";
 import { labelOf, paymentMethods } from "@/lib/form-options";
 import { money } from "@/components/ProductCard";
+import { ConfirmPaymentButton } from "@/components/ConfirmPaymentButton";
 
 export const metadata: Metadata = { title: "Order", robots: { index: false } };
 
@@ -57,10 +58,16 @@ export default async function OrderPage({ params }: Props) {
             </li>
           </ul>
           {wa && (
-            <a className="btn btn-primary mt-6" target="_blank" rel="noopener noreferrer"
-              href={`https://wa.me/${wa}?text=${encodeURIComponent(`${order.code} — ${order.name}`)}`}>
-              {order.method === "other" ? (lang === "ar" ? "كلّمني على واتساب" : "Message me on WhatsApp") : lang === "ar" ? "ابعت إيصال الدفع" : "Send payment receipt"}
-            </a>
+            <ConfirmPaymentButton
+              code={order.code}
+              waLink={`https://wa.me/${wa}?text=${encodeURIComponent(`${order.code} — ${order.name}`)}`}
+              label={
+                order.method === "other"
+                  ? lang === "ar" ? "أنا حوّلت — كلّمني على واتساب" : "I've paid — message me on WhatsApp"
+                  : lang === "ar" ? "أنا حوّلت الفلوس ✅" : "I've transferred ✅"
+              }
+              sentLabel={lang === "ar" ? "تم إبلاغه، افتح واتساب وابعت الإيصال" : "He's been notified — open WhatsApp to send the receipt"}
+            />
           )}
         </section>
       )}
